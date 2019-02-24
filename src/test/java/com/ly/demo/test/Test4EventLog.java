@@ -2,12 +2,14 @@ package com.ly.demo.test;
 
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.activiti.engine.event.EventLogEntry;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.logging.LogMDC;
 import org.activiti.engine.runtime.Execution;
+import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.test.ActivitiRule;
 import org.activiti.engine.test.Deployment;
@@ -23,31 +25,22 @@ import java.util.Map;
 public class Test4EventLog {
 
     @Rule
-    public ActivitiRule activitiRule = new ActivitiRule("activiti.cfg_history.xml");
+    public ActivitiRule activitiRule = new ActivitiRule("activiti.cfg_eventLog.xml");
 
 
     @Test
     @Deployment(resources = "MyProcess2.bpmn20.xml")
     public void test1() {
-        // 创建变量
-        Map<String, Object> varableMap = Maps.newHashMap();
+        ProcessInstance processInstance = activitiRule.getRuntimeService().startProcessInstanceByKey("my-process2");
 
-        varableMap.put("key1", "value1");
-        varableMap.put("key2", "value2");
+        Task task = activitiRule.getTaskService().createTaskQuery().singleResult();
+        activitiRule.getTaskService().complete(task.getId());
 
-        // 启动流程
-       LogMDC.setMDCEnabled(true);
-        activitiRule.getRuntimeService().startProcessInstanceByKey("my-process2", varableMap);
+        List<EventLogEntry> eventLogEntriesByProcessInstanceId = activitiRule.getManagementService().getEventLogEntriesByProcessInstanceId(processInstance.getId());
 
-        // 修改变量
-        List<Execution> executions = activitiRule.getRuntimeService().createExecutionQuery().listPage(0, 100);
-        for (Execution execution : executions) {
-            log.info("execution = {}", execution);
+        for (EventLogEntry eventLogEntry : eventLogEntriesByProcessInstanceId) {
+            log.info("eventLog.type = {}, eventLog.data = {}", eventLogEntry.getType(), new String(eventLogEntry.getData()));
         }
-        log.info("executions size = {}", executions.size());
-        String id = executions.iterator().next().getId();
-        activitiRule.getRuntimeService().setVariable(id, "key1", "modify value 1");
-
 
     }
 
