@@ -1,0 +1,49 @@
+package com.ly.demo.test;
+
+import com.ly.activiti.event.CustomEventLisener;
+import lombok.extern.slf4j.Slf4j;
+import org.activiti.engine.delegate.event.ActivitiEvent;
+import org.activiti.engine.delegate.event.ActivitiEventType;
+import org.activiti.engine.delegate.event.impl.ActivitiEventImpl;
+import org.activiti.engine.event.EventLogEntry;
+import org.activiti.engine.history.HistoricDetail;
+import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
+import org.activiti.engine.test.ActivitiRule;
+import org.activiti.engine.test.Deployment;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.util.List;
+
+@Slf4j
+public class Test5EventLog {
+
+    @Rule
+    public ActivitiRule activitiRule = new ActivitiRule("activiti.cfg_eventLisener.xml");
+
+
+    @Test
+    @Deployment(resources = "MyProcess2.bpmn20.xml")
+    public void test1() {
+        ProcessInstance processInstance = activitiRule.getRuntimeService().startProcessInstanceByKey("my-process2");
+
+        Task task = activitiRule.getTaskService().createTaskQuery().singleResult();
+        activitiRule.getTaskService().complete(task.getId());
+
+        // 添加监听事件  代码添加自定义事件
+        activitiRule.getRuntimeService().addEventListener(new CustomEventLisener());
+
+        // 发出自定义事件
+        activitiRule.getRuntimeService().dispatchEvent(new ActivitiEventImpl(ActivitiEventType.CUSTOM));
+
+    }
+
+
+    static String toString(HistoricDetail historicDetail) {
+        return ToStringBuilder.reflectionToString(historicDetail, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
+
+}
