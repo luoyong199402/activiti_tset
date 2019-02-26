@@ -19,7 +19,7 @@ import org.junit.Test;
 import java.util.List;
 
 @Slf4j
-public class Test5EventLog {
+public class Test5EventLinsener {
 
     @Rule
     public ActivitiRule activitiRule = new ActivitiRule("activiti.cfg_eventLisener.xml");

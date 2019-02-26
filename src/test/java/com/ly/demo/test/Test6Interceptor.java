@@ -28,6 +28,13 @@ public class Test6Interceptor {
 
         Task task = activitiRule.getTaskService().createTaskQuery().singleResult();
         activitiRule.getTaskService().complete(task.getId());
+
+        // 添加监听事件  代码添加自定义事件
+        activitiRule.getRuntimeService().addEventListener(new CustomEventLisener());
+
+        // 发出自定义事件
+        activitiRule.getRuntimeService().dispatchEvent(new ActivitiEventImpl(ActivitiEventType.CUSTOM));
+
     }
 
 
