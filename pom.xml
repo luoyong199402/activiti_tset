@@ -6,7 +6,11 @@
 
     <groupId>com.ly.activit</groupId>
     <artifactId>activiti-demo</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>core-api</module>
+    </modules>
 
     <dependencies>
         <dependency>
