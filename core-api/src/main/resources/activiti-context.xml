@@ -35,6 +35,7 @@
     <bean id="formService" factory-bean="processEngine" factory-method="getFormService"></bean>
     <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService"></bean>
     <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"></bean>
+    <bean id="identityService" factory-bean="processEngine" factory-method="getIdentityService"></bean>
 
     <bean id="activitiRule" class="org.activiti.engine.test.ActivitiRule">
         <property name="processEngine" ref="processEngine"></property>
