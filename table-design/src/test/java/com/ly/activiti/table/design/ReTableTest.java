@@ -34,7 +34,7 @@ import java.util.Set;
  *      deploy_time_:           部署时间
  *      engine_version_:        流程版本
  *
- *  2. act_re_procdef
+ *  2. act_re_procdef  流程定义信息表
  *      id_:                    主键  流程配置文件key:流程version:流程部署id
  *      rev_:                   版本号
  *      category_:              分类信息
