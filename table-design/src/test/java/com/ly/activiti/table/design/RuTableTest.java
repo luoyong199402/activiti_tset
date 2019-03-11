@@ -1,19 +1,21 @@
 package com.ly.activiti.table.design;
 
 
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.activiti.engine.IdentityService;
-import org.activiti.engine.ManagementService;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.RuntimeService;
+import org.activiti.engine.*;
 import org.activiti.engine.identity.Group;
 import org.activiti.engine.identity.User;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -73,14 +75,27 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *      5. task_id_             任务id
  *      6. proc_inst_id_        流程实例
  *
- * 6. act_ru_event_subscr   事件订阅表
+ * 6. act_ru_event_subscr   事件订阅表  (1 基于流程定义文件。 接受消息启动流程。  2. 当流程启动以后（基于流程实例）(只有当基于流程实例的才可以有  执行id 和 流程实例id)。 才可以监听事件)
  *      1. event_type_          事件类型 message, signal
  *      2. event_name_          事件名称
  *      3. execution_id_        流程执行id
  *      4. proc_inst_id_        流程实例id
  *      5. activity_id_         流程定义节点id
- *      configuration_          配置
+ *      6. ciguration_          配置
  *
+ * 7. act_ru_job            作业信息表
+ *      1. type_                类型
+ *      2. lock_exp_time_       锁定过期时间
+ *      3. lock_owner_          锁定节点
+ *      4. exclusive_           是否唯一
+ *      5. retries_             重试次数3
+ *      6. repeat_              重复表达式 R5/RT10S
+ *      7. exception_stack_id_  异常堆栈（资源表ID）
+ *      8. exception_msg_       异常信息
+ *      9. duedate_             过期时间
+ *      10. handler_type_       处理器类型
+ *      11. handler_cfg_        处理器配置
+ *      12. execution_id_       流程执行表id
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -95,8 +110,14 @@ public class RuTableTest {
     @Autowired
     private RuntimeService runtimeService;
 
+    @Autowired
+    private TaskService taskService;
+
     @Test
     public void test1() {
+        Map<String, Object> mapVaraible = Maps.newHashMap();
+        mapVaraible.put("test key", "test value");
+
         repositoryService.createDeployment()
                 .name("测试runtime表的部署")
                 .addClasspathResource("MyProcess.bpmn20.xml")
@@ -105,10 +126,29 @@ public class RuTableTest {
         runtimeService.createProcessInstanceBuilder()
                 .businessKey("business key")
                 .processDefinitionKey("myProcess")
+                .variables(mapVaraible)
                 .start();
 
 //        ProcessInstance myProcess = runtimeService.startProcessInstanceByKey("myProcess");
         log.info("部署启动文件成功!");
+    }
+
+    @Test
+    public void testSetOwner() {
+        Task task = taskService.createTaskQuery().processDefinitionKey("myProcess").singleResult();
+        taskService.setOwner(task.getId(), "ly");
+
+        log.info("设置 taskid = {}", task.getId());
+    }
+
+    @Test
+    public void testJobTask() throws InterruptedException {
+        repositoryService.createDeployment()
+                .name("测试runtime表的部署")
+                .addClasspathResource("MyProcess2.jobTest.bpmn20.xml")
+                .deploy();
+
+        Thread.sleep(1000 * 30);
     }
 
 }
